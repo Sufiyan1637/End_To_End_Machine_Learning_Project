@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: mlproject
+Version: 0.0.1
+Author: Sufiyan
+Author-email: sufiyanm720@gmail.com
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: seaborn
+Requires-Dist: matplotlib
+Requires-Dist: scikit-learn
+Requires-Dist: xgboost
+Dynamic: author
+Dynamic: author-email
+Dynamic: requires-dist
