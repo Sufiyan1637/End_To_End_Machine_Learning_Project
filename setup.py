@@ -4,22 +4,26 @@ from typing import List
 
 
 HYPER_E_DOT = "-e ."
-def get_requirements(file_path:str) -> list[str]:
+def get_requirements(file_path:str)-> List[str]:
+
     requirements = []
+
     with open(file_path) as file_obj :
         requirements = file_obj.readlines()
-        requirements = [req.replace("\n", "") for req in requirements]
+        [req.replace("\n", "") for req in requirements]
+
         if HYPER_E_DOT in requirements:
             requirements.remove(HYPER_E_DOT)
 
     return requirements
 
-get_requirements("requirements.txt")
+
+
 setup(
     name="mlproject",
-    version= "0.0.1",
-    author= "Sufiyan",
-    author_email= "sufiyanm720@gmail.com",
+    version="0.0.1",
+    author="Sufiyan",
+    author_email="sufiyanm720@gmail.com",
     packages=find_packages(),
-    install_requires= get_requirements('requirements.txt')
+    install_requires=get_requirements("requirements.txt")
 )
