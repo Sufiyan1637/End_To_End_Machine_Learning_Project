@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 from src.logger import logging
 from src.exception import CustomException
-
+from src.utils import save_object    
 
 @dataclass
 class DataTransformationConfig:
@@ -48,7 +48,7 @@ class DataTransformation:
             categorical_pipeline = Pipeline(steps=[
                 ("imputer", SimpleImputer(strategy="most_frequent")),
                 ("ohe" , OneHotEncoder(handle_unknown="ignore")),
-                ("scaler" , StandardScaler(with_mean=True))
+                ("scaler" , StandardScaler(with_mean=False))
             ])
 
             logging.info("Encoding of Categorical Feature is Completed")
@@ -94,7 +94,7 @@ class DataTransformation:
             logging.info("Applying Preprocesser Object on Training  and Testing Dataframe")
 
             input_feature_train_arr = preprocessing_obj.fit_transform(input_train_feature)
-            input_feature_test_arr = preprocessing_obj.fit_transform(input_test_feature)
+            input_feature_test_arr = preprocessing_obj.transform(input_test_feature)
 
 
             train_arr = np.c_[
@@ -104,6 +104,9 @@ class DataTransformation:
             test_arr = np.c_[input_feature_test_arr, np.array(target_test_feature)]
 
             logging.info("Saved Preprocessing Object.")
+
+            save_object(file_path= self.data_transformation_config.preprocesser_obj_file_path,
+                        obj = preprocessing_obj)
 
             return(
                 train_arr,
