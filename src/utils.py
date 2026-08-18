@@ -40,4 +40,5 @@ def evaluate_model(x_train, y_train, x_test, y_test , models):
 
         report[list(models.keys())[i]] = test_model_score
 
+        print("Report\n", report)
     return report
