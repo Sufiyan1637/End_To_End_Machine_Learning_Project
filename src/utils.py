@@ -22,34 +22,44 @@ def save_object(file_path , obj):
 
 
 
-def evaluate_model(x_train, y_train, x_test, y_test , models, params):
+def evaluate_model(x_train, y_train, x_test, y_test, models, params):
 
     report = {}
+    best_models = {}
 
     for i in range(len(list(models))):
+
+        model_name = list(models.keys())[i]
         model = list(models.values())[i]
         param = list(params.values())[i]
-        gc = GridSearchCV(model, param_grid=param, cv=5 , n_jobs=-1)
 
+        gc = GridSearchCV(
+            model,
+            param_grid=param,
+            cv=5,
+            n_jobs=-1
+        )
 
         gc.fit(x_train, y_train)
 
         best_model = gc.best_estimator_
 
         y_train_pred = best_model.predict(x_train)
-
         y_test_pred = best_model.predict(x_test)
 
         train_model_score = r2_score(y_train, y_train_pred)
-
         test_model_score = r2_score(y_test, y_test_pred)
 
-        report[list(models.keys())[i]] = test_model_score
+        report[model_name] = test_model_score
+        best_models[model_name] = best_model
 
-        print("Report\n", report)
-    return report
+        print(
+            model_name,
+            "Train Score:", train_model_score,
+            "Test Score:", test_model_score
+        )
 
-
+    return report, best_models
 
 
 def load_object(file_path):
