@@ -1,24 +1,27 @@
 import os
 import sys
-from dataclasses import dataclass
+import pandas as pd
+import numpy as np
 
-from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor,GradientBoostingRegressor
+from sklearn.ensemble import AdaBoostRegressor, GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import r2_score
 from xgboost import XGBRegressor
 
-from sklearn.metrics import r2_score
 
-from src.logger import logging
+from dataclasses import dataclass
+from src.utils import evaluate_model, save_object
 from src.exception import CustomException
-from src.utils import save_object, evaluate_model
+from src.logger import logging
+
+
 
 
 @dataclass
 class ModelTrainerConfig:
-    model_file_path = os.path.join("artifacts", "model.pkl")
-
+    trained_model_file_path = os.path.join("artifacts", "model.pkl")
 
 
 class ModelTrainer:
@@ -26,30 +29,26 @@ class ModelTrainer:
     def __init__(self):
         self.model_trainer_config = ModelTrainerConfig()
 
-
-    try:
-
-        def initiate_model_trainer(self, train_array, test_array):
-
-            x_train, x_test, y_train, y_test = (
-                train_array[: , :-1],
+    def initiate_model_trainer(self, train_array , test_array):
+        try:
+            logging.info("Spliting Training and Test Input Data")
+            x_train, y_train, x_test, y_test = (
+                train_array[:, :-1],
+                train_array[:, -1],
                 test_array[: , :-1],
-                train_array[: , -1],
-                test_array[:, -1]
-            ) 
-
-
+                test_array[: , -1]
+            )
             models = {
-                        "Random Forest" : RandomForestRegressor(),
-                        "Decision Tree" : DecisionTreeRegressor(),
-                        "Gradient Boosting" : GradientBoostingRegressor(),
-                        "Linear Regression" : LinearRegression(),
-                        "K-Neighbours" : KNeighborsRegressor(),
-                        "XGBRegressor" : XGBRegressor(),
-                        "Ada Boost" : AdaBoostRegressor(),
-                    }
-            
-            
+                "Random Forest" : RandomForestRegressor(),
+                "Decision Tree" : DecisionTreeRegressor(),
+                "Gradient Boosting" : GradientBoostingRegressor(),
+                "Linear Regression" : LinearRegression(),
+                "K-Neighbours" : KNeighborsRegressor(),
+                "XGBRegressor" : XGBRegressor(),
+                "Ada Boost" : AdaBoostRegressor(),
+            }
+
+
             params = {
                 "Random Forest" : 
                 {
@@ -96,24 +95,27 @@ class ModelTrainer:
                     'n_estimators' : [8,16,32,64,128,256]
                     
                 }
-            
+
             }
 
-            model_report:dict = evaluate_model(x_train=x_train, x_test=x_test,y_train=y_train, y_test=y_test , models=models, params=params)
+            model_report, best_models = evaluate_model(x_train=x_train,x_test=x_test,y_train=y_train,y_test=y_test,models=models,params=params)
 
-            best_model_score = max(sorted(model_report.values()))
+            best_model_score = max(model_report.values())
 
-            best_model_name = list(models.keys())[
+            best_model_name = list(model_report.keys())[
                 list(model_report.values()).index(best_model_score)
             ]
 
-            best_model = models[best_model_name]
+            best_model = best_models[best_model_name]
 
-            save_object(self.model_trainer_config.model_file_path, best_model)
+            print("Best Model:", best_model)
+            save_object(
+                self.model_trainer_config.model_file_path,
+                best_model)
 
-            print(best_model)
+            predicted = best_model.predict(x_test)
 
-
-    except Exception as e:
-
-        raise CustomException(e,sys)
+            score = r2_score(y_test, predicted)
+            return score
+        except Exception as e:
+            raise CustomException(e,sys)
